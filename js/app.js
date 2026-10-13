@@ -208,7 +208,7 @@
       return '<h2 class="print-band">' + BANDS[group.band].label + '</h2>' + blocks;
     }).join("");
     document.getElementById("print-sheet").innerHTML =
-      '<h1>澳洲配偶签 / 189 副申请 · 电话调查备忘</h1>' +
+      '<h1>问答备忘</h1>' +
       '<p class="print-meta">填写人：' + escapeHtml(info.who || "未填写") +
       '　伴侣：' + escapeHtml(info.partner || "未填写") +
       '<br>导出日期：' + stamp +
@@ -221,7 +221,7 @@
     setStatus("在打印窗口中选择「存储为 PDF」");
     const previous = document.title;
     const info = profile();
-    document.title = "电话调查备忘-" + (info.who || "未署名");
+    document.title = "问答备忘-" + (info.who || "未署名");
     window.print();
     document.title = previous;
   }
@@ -231,7 +231,7 @@
     const blob = new Blob([JSON.stringify({ answers: draft.answers, profile: draft.profile }, null, 2)], { type: "application/json" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "电话调查备忘-" + (draft.profile.who || "备份") + ".json";
+    link.download = "问答备忘-" + (draft.profile.who || "备份") + ".json";
     link.click();
     setTimeout(function () { URL.revokeObjectURL(link.href); }, 1500);
     setStatus("备份文件已下载");
