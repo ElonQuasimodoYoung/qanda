@@ -463,10 +463,16 @@
     document.getElementById("sync-code").textContent = formatCode(sync.code);
   }
 
+  function extractCode(raw) {
+    const text = String(raw || "");
+    const match = text.match(/sync=([A-Za-z0-9-]+)/);
+    return normalizeCode(match ? match[1] : text);
+  }
+
   function joinCode(raw) {
-    const code = normalizeCode(raw);
-    if (code.length < 20) {
-      setStatus("同步码不对，应该是 24 位字母和数字");
+    const code = extractCode(raw);
+    if (code.length !== 24) {
+      setStatus("同步码不对：粘贴完整的邀请链接，或输入 24 位同步码");
       return;
     }
     if (code === sync.code) {
@@ -481,9 +487,20 @@
     sync = { code: code, merged: false };
     saveSync();
     showSync();
-    setStatus("正在同步…");
-    pull();
+    setStatus("正在加入…");
+    pull().then(function () {
+      if (document.getElementById("dock-status").textContent === "已同步") {
+        setStatus("已加入，之后双方的修改会自动同步");
+      }
+    });
     connectLive();
+  }
+
+  function joinFromLink() {
+    if (!/sync=/.test(location.hash)) return;
+    const raw = location.hash;
+    history.replaceState(null, "", location.pathname + location.search);
+    if (extractCode(raw) !== sync.code) joinCode(raw);
   }
 
   function copyInvite() {
@@ -501,8 +518,6 @@
 
   function startSync() {
     sync = loadSync();
-    const match = location.hash.match(/sync=([A-Za-z0-9-]+)/);
-    if (match) history.replaceState(null, "", location.pathname + location.search);
     if (!sync) {
       sync = { code: newCode(), merged: false };
       saveSync();
@@ -511,9 +526,10 @@
     document.getElementById("intro").textContent =
       "题目按 13 份材料里的出现次数分成高频、中频和低频。答案会存在这台浏览器，并同步到云端；用同一个同步码的手机、电脑和伴侣都能看到同一份。";
     setStatus("正在同步…");
-    if (match && normalizeCode(match[1]) !== sync.code) joinCode(match[1]);
-    else pull();
-    if (!live) connectLive();
+    pull();
+    connectLive();
+    joinFromLink();
+    window.addEventListener("hashchange", joinFromLink);
 
     document.getElementById("sync-copy").addEventListener("click", copyInvite);
     document.getElementById("sync-join").addEventListener("submit", function (event) {
