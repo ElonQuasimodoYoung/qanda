@@ -268,8 +268,6 @@ input:focus, textarea:focus {
 }
 .dock span { font-size: 13px; padding-left: 6px; }
 .dock .btn { background: #f3efe6; color: var(--green-deep); white-space: nowrap; }
-.sources { color: var(--muted); font-size: 13px; line-height: 1.6; }
-.sources summary { cursor: pointer; color: var(--ink); font-weight: 700; }
 .empty {
   padding: 28px 8px;
   color: var(--muted);
