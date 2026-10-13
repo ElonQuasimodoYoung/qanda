@@ -14,7 +14,7 @@
       <div>
         <p class="eyebrow">澳洲配偶签 / 189 副申请</p>
         <h1>电话调查备忘</h1>
-        <p class="sub">题目按 13 份材料里的出现次数分成高频、中频和低频。写出的答案会留在这台浏览器里，关掉页面也不会丢。换电脑前先下载一份备份。</p>
+        <p class="sub" id="intro">题目按 13 份材料里的出现次数分成高频、中频和低频。写出的答案会留在这台浏览器里，关掉页面也不会丢。换电脑前先下载一份备份。</p>
       </div>
       <div class="top-actions no-print">
         <button class="btn secondary" id="backup" type="button">下载备份</button>
@@ -42,6 +42,20 @@
         <div class="field">
           <label for="partner">伴侣</label>
           <input id="partner" type="text" maxlength="40" placeholder="对方的名字或称呼" autocomplete="off">
+        </div>
+      </div>
+      <div class="sync no-print" id="sync" hidden>
+        <div class="sync-info">
+          <span class="sync-label">同步码</span>
+          <code class="sync-code" id="sync-code"></code>
+          <p class="note">把邀请链接发给伴侣，或在另一台设备输入这个同步码，就能看到同一份答案。拿到同步码的人都能看和改，不要公开发出去。</p>
+        </div>
+        <div class="sync-actions">
+          <button class="btn secondary" id="sync-copy" type="button">复制邀请链接</button>
+          <form class="sync-join" id="sync-join">
+            <input id="sync-input" type="text" placeholder="输入别人的同步码" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="同步码">
+            <button class="btn" type="submit">加入</button>
+          </form>
         </div>
       </div>
     </section>
@@ -72,6 +86,7 @@
   </main>
 
   <article id="print-sheet" class="print-sheet"></article>
+  <script src="js/sync-config.js"></script>
   <script src="js/questions.js"></script>
   <script src="js/app.js"></script>
 </body>
