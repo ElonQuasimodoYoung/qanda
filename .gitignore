@@ -1,0 +1,5 @@
+.env
+.env.example
+data/
+server.mjs
+js/config.js

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#12382d">
+  <title>电话调查备忘</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2312382d'/%3E%3Cpath d='M18 24h28v6H18zm0 10h20v6H18zm0 10h24v6H18z' fill='%23f3efe6'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main id="app" class="app">
+    <header class="top">
+      <div>
+        <p class="eyebrow">澳洲配偶签 / 189 副申请</p>
+        <h1>电话调查备忘</h1>
+        <p class="sub">题目按 13 份材料里的出现次数分成高频、中频和低频。写出的答案会留在这台浏览器里，关掉页面也不会丢。换电脑前先下载一份备份。</p>
+      </div>
+      <div class="top-actions no-print">
+        <button class="btn secondary" id="backup" type="button">下载备份</button>
+        <label class="btn secondary file-btn">恢复备份<input id="restore" type="file" accept="application/json,.json" hidden></label>
+      </div>
+    </header>
+
+    <section class="stats" aria-label="完成进度">
+      <div class="stat">
+        <b id="done-count">0 / 0</b>
+        <span>已填写</span>
+        <div class="bar" aria-hidden="true"><i id="done-bar"></i></div>
+      </div>
+      <div class="stat high"><b id="count-high">0</b><span>高频 · 6 次及以上</span></div>
+      <div class="stat mid"><b id="count-mid">0</b><span>中频 · 3 到 5 次</span></div>
+      <div class="stat low"><b id="count-low">0</b><span>低频 · 1 到 2 次</span></div>
+    </section>
+
+    <section class="panel">
+      <div class="profile">
+        <div class="field">
+          <label for="who">填写人</label>
+          <input id="who" type="text" maxlength="40" placeholder="你的名字或称呼" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="partner">伴侣</label>
+          <input id="partner" type="text" maxlength="40" placeholder="对方的名字或称呼" autocomplete="off">
+        </div>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <div class="chips" id="filters" role="toolbar" aria-label="按频率筛选">
+        <button class="chip" type="button" data-filter="all" aria-pressed="true">全部</button>
+        <button class="chip" type="button" data-filter="high" aria-pressed="false">高频</button>
+        <button class="chip" type="button" data-filter="mid" aria-pressed="false">中频</button>
+        <button class="chip" type="button" data-filter="low" aria-pressed="false">低频</button>
+        <button class="chip" type="button" data-filter="blank" aria-pressed="false">未填写</button>
+      </div>
+      <div class="search">
+        <input id="search" type="search" placeholder="搜索问题" enterkeyhint="search">
+      </div>
+    </div>
+
+    <div id="list"></div>
+    <p class="empty" id="empty" hidden>没有符合条件的问题。</p>
+
+    <details class="sources">
+      <summary>这 13 份材料是怎么数的</summary>
+      <p>麦格小宝哥《26年电调常遇问题》、韩博士《5 大高频问题》、安 Tony《常见问题》、澳洲一姐《问题与注意事项》、森哥《讲清楚了》、森哥《别因一句话耽误 PR》、新起点 Naomi《2026 电调必看》、麦格 Weide《遇到电调怎么办》、TopKoala《常见问题与应对》、《10 问》截图、《生活细节》截图、《高频清单》截图，以及《电话调查》PDF。同一帖的副本和重复截图没有重复计数。整理自公开分享，不是移民建议，实际提问以移民局当次电话为准。</p>
+    </details>
+
+    <div class="dock no-print">
+      <span id="dock-status">答案会自动留在这台浏览器</span>
+      <div class="row">
+        <button class="btn secondary" id="clear" type="button">清空答案</button>
+        <button class="btn" id="export" type="button">导出 PDF</button>
+      </div>
+    </div>
+  </main>
+
+  <article id="print-sheet" class="print-sheet"></article>
+  <script src="js/questions.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
