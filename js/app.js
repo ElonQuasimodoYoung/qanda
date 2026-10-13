@@ -24,6 +24,9 @@
   let sync = null;
   let pushTimer = null;
   let pushing = false;
+  let live = null;
+  let liveRetry = 0;
+  let liveRef = 0;
 
   function emptyDraft() {
     return { answers: {}, profile: { who: "", partner: "" }, dirty: {} };
@@ -316,7 +319,7 @@
   function schedulePush() {
     setStatus("正在同步…");
     clearTimeout(pushTimer);
-    pushTimer = setTimeout(push, 700);
+    pushTimer = setTimeout(push, 400);
   }
 
   function push() {
@@ -337,6 +340,7 @@
         if (readEntry(latest, key) === items[key]) delete latest.dirty[key];
       });
       persist(latest);
+      announce();
       if (Object.keys(latest.dirty).length) return push();
       setStatus("已同步");
     }, function () {
@@ -373,6 +377,68 @@
       if (Object.keys(draft.dirty).length) return push();
       setStatus("已同步");
     }, syncFailed);
+  }
+
+  function liveTopic(code) {
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(code + ":live")).then(function (buf) {
+      const hex = Array.from(new Uint8Array(buf), function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+      return "realtime:notes-" + hex.slice(0, 40);
+    });
+  }
+
+  function sendLive(conn, topic, event, payload) {
+    if (conn.ws.readyState !== WebSocket.OPEN) return;
+    liveRef += 1;
+    conn.ws.send(JSON.stringify({ topic: topic, event: event, payload: payload, ref: String(liveRef) }));
+  }
+
+  function closeLive() {
+    if (!live) return;
+    const conn = live;
+    live = null;
+    clearInterval(conn.heartbeat);
+    conn.ws.close();
+  }
+
+  function connectLive() {
+    if (!sync || !window.WebSocket || !window.crypto || !crypto.subtle) return;
+    const code = sync.code;
+    closeLive();
+    liveTopic(code).then(function (topic) {
+      if (!sync || sync.code !== code) return;
+      closeLive();
+      const url = config.url.replace(/^http/, "ws").replace(/\/+$/, "") +
+        "/realtime/v1/websocket?apikey=" + encodeURIComponent(config.key) + "&vsn=1.0.0";
+      const conn = { ws: new WebSocket(url), topic: topic, joined: false, heartbeat: null };
+      live = conn;
+      conn.ws.onopen = function () {
+        sendLive(conn, topic, "phx_join", { config: { broadcast: { self: false }, presence: { key: "" }, postgres_changes: [] } });
+        conn.heartbeat = setInterval(function () { sendLive(conn, "phoenix", "heartbeat", {}); }, 25000);
+      };
+      conn.ws.onmessage = function (event) {
+        const msg = JSON.parse(event.data);
+        if (msg.topic !== topic) return;
+        if (msg.event === "phx_reply" && !conn.joined && msg.payload && msg.payload.status === "ok") {
+          conn.joined = true;
+          liveRetry = 0;
+          pull();
+        } else if (msg.event === "broadcast") {
+          pull();
+        }
+      };
+      conn.ws.onclose = function () {
+        clearInterval(conn.heartbeat);
+        if (live !== conn) return;
+        live = null;
+        const wait = Math.min(30000, 1000 * Math.pow(2, liveRetry));
+        liveRetry += 1;
+        setTimeout(function () { if (!live) connectLive(); }, wait);
+      };
+    });
+  }
+
+  function announce() {
+    if (live && live.joined) sendLive(live, live.topic, "broadcast", { type: "broadcast", event: "changed", payload: {} });
   }
 
   function showRemote(keys) {
@@ -417,6 +483,7 @@
     showSync();
     setStatus("正在同步…");
     pull();
+    connectLive();
   }
 
   function copyInvite() {
@@ -446,6 +513,7 @@
     setStatus("正在同步…");
     if (match && normalizeCode(match[1]) !== sync.code) joinCode(match[1]);
     else pull();
+    if (!live) connectLive();
 
     document.getElementById("sync-copy").addEventListener("click", copyInvite);
     document.getElementById("sync-join").addEventListener("submit", function (event) {
@@ -458,10 +526,13 @@
       if (document.visibilityState === "visible") pull();
     }, 20000);
     document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState === "visible") pull();
+      if (document.visibilityState !== "visible") return;
+      pull();
+      if (!live) connectLive();
     });
     window.addEventListener("online", function () {
       push().then(pull);
+      if (!live) connectLive();
     });
   }
 
